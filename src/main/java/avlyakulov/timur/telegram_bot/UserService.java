@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,32 +21,46 @@ public class UserService {
 
         switch (textFromUser) {
             case Buttons.BTN_START -> {
+                addUser(user);
                 sendMessage = SendMessage.builder()
-                        .chatId(user.getUserId().toString())
+                        .chatId(user.getChatId().toString())
                         .text("Hello, It's bot for counting days in year\nYou can chose from list of commands here")
                         .replyMarkup(buildCommandsMenu())
                         .build();
             }
             case Buttons.BTN_ACTIVATE -> {
-                addUser(user);
-                activateUser(user.getUserId());
-                sendMessage = SendMessage.builder()
-                        .chatId(user.getUserId().toString())
-                        .text("✅Congratulations bot was activate you will receive a message every minute✅")
-                        .replyMarkup(buildCommandsMenu())
-                        .build();
+                try {
+                    userDao.setIsActiveTrue(user.getChatId());
+                    sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId().toString())
+                            .text("✅Congratulations bot was activate you will receive a message every minute✅")
+                            .replyMarkup(buildCommandsMenu())
+                            .build();
+                } catch (UserNotFoundException e) {
+                    sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId().toString())
+                            .text(e.getMessage())
+                            .build();
+                }
             }
             case Buttons.BTN_DEACTIVATE -> {
-                deactivateUser(user.getUserId());
-                sendMessage = SendMessage.builder()
-                        .chatId(user.getUserId().toString())
-                        .text("❌Bot was deactivated you won't receive a message anymore❌")
-                        .replyMarkup(buildCommandsMenu())
-                        .build();
+                try {
+                    userDao.setIsActiveFalse(user.getChatId());
+                    sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId().toString())
+                            .text("❌Bot was deactivated you won't receive a message anymore❌")
+                            .replyMarkup(buildCommandsMenu())
+                            .build();
+                } catch (UserNotFoundException e) {
+                    sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId().toString())
+                            .text(e.getMessage())
+                            .build();
+                }
             }
             default -> {
                 sendMessage = SendMessage.builder()
-                        .chatId(user.getUserId().toString())
+                        .chatId(user.getChatId().toString())
                         .text("❌You put the wrong text or button please try again❌")
                         .replyMarkup(buildCommandsMenu())
                         .build();
@@ -60,15 +75,9 @@ public class UserService {
     }
 
     public void addUser(User user) {
-        userDao.addUser(user);
-    }
-
-    public void activateUser(Long userId) {
-        userDao.activateUser(userId);
-    }
-
-    public void deactivateUser(Long userId) {
-        userDao.deactivateUser(userId);
+        Optional<User> optionalUser = userDao.findByChatId(user.getChatId());
+        if (optionalUser.isEmpty())
+            userDao.addUser(user);
     }
 
     private ReplyKeyboardMarkup buildCommandsMenu() {

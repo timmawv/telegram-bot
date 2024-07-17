@@ -2,7 +2,6 @@ package avlyakulov.timur.telegram_bot;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -17,11 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduleBotSender extends TelegramLongPollingBot {
 
-    @Value("${telegram.bot.token}")
-    private String telegramToken;
-
-    @Value("${telegram.bot.username}")
-    private String telegramUsername;
+    private final TelegramBotConfiguration telegramBotConfiguration;
 
     private final UserService userService;
 
@@ -35,7 +30,7 @@ public class ScheduleBotSender extends TelegramLongPollingBot {
             Long userId = update.getMessage().getChatId();
             String userFirstName = update.getMessage().getFrom().getFirstName();
 
-            User user = new User(userId, userFirstName, true);
+            User user = new User(userId, userFirstName, false);
 
             log.info("[{}, {}] : {}", userId, userFirstName, textFromUser);
 
@@ -51,7 +46,7 @@ public class ScheduleBotSender extends TelegramLongPollingBot {
         }
     }
 
-    @Scheduled(fixedDelay = 1000 * 60, initialDelay = 1000)
+    @Scheduled(fixedDelay = 1000 * 30, initialDelay = 1000)
     public void sendMessage() {
         List<User> users = userService.findAll();
         List<SendMessage> listOfMessages = telegramService.getListOfMessages(users);
@@ -66,11 +61,11 @@ public class ScheduleBotSender extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return telegramUsername;
+        return telegramBotConfiguration.getTelegramUsername();
     }
 
     @Override
     public String getBotToken() {
-        return telegramToken;
+        return telegramBotConfiguration.getTelegramToken();
     }
 }

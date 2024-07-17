@@ -9,7 +9,7 @@ import lombok.*;
 @EqualsAndHashCode
 public class User {
 
-    private Long userId;
+    private Long chatId;
 
     @EqualsAndHashCode.Exclude
     private String userFirstName;
