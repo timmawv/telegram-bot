@@ -2,7 +2,6 @@ package avlyakulov.timur.telegram_bot;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -13,12 +12,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @Getter
 @Configuration
 public class TelegramBotConfiguration {
-
-    @Value("${telegram.bot.token}")
-    private String telegramToken;
-
-    @Value("${telegram.bot.username}")
-    private String telegramUsername;
 
     @Bean
     public TelegramBotsApi telegramBotsApi(ScheduleBotSender scheduleBotSender) {

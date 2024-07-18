@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduleBotSender extends TelegramLongPollingBot {
 
-    private final TelegramBotConfiguration telegramBotConfiguration;
+    private final TelegramCredentials telegramCredentials;
 
     private final UserService userService;
 
@@ -61,11 +61,11 @@ public class ScheduleBotSender extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return telegramBotConfiguration.getTelegramUsername();
+        return telegramCredentials.getUsername();
     }
 
     @Override
     public String getBotToken() {
-        return telegramBotConfiguration.getTelegramToken();
+        return telegramCredentials.getToken();
     }
 }

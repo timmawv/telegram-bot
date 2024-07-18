@@ -2,6 +2,5 @@ spring:
   application:
     name: telegram-bot
 telegram:
-  bot:
-    username: ${TELEGRAM_USERNAME}
-    token: ${TELEGRAM_TOKEN}
+  token: ${TELEGRAM_TOKEN}
+  username: ${TELEGRAM_USERNAME}
