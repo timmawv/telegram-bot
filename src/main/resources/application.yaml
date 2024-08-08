@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: telegram-bot
+telegram:
+  token: ${TELEGRAM_TOKEN}
+  username: ${TELEGRAM_USERNAME}
