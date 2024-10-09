@@ -1,5 +1,6 @@
 ##Mine
 src/main/resources/application-dev.yaml
+.env
 
 HELP.md
 target/

@@ -14,54 +14,75 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserDao userDao;
+    private final UserRepository userRepository;
+
+    private final String USER_NOT_ADDED = "❌ You weren't added to schedule system. Please press /start ❌";
+
+    private final String USER_ADDED = "You were already added to schedule system.";
+
+    private final String WELCOME_MESSAGE = "Hello, It's bot for counting days in year\nYou can chose from list of commands here";
+
+    private final String BOT_ACTIVATED = "✅Congratulations bot was activate you will receive a message every minute✅";
+
+    private final String BOT_DEACTIVATED = "❌Bot was deactivated you won't receive a message anymore❌";
+
+    private final String WRONG_COMMAND = "❌You put the wrong text or button please try again❌";
 
     public SendMessage generateMessage(User user, String textFromUser) {
         SendMessage sendMessage;
-
+        Optional<User> userByChatId = userRepository.findById(user.getChatId());
         switch (textFromUser) {
             case Buttons.BTN_START -> {
-                addUser(user);
-                sendMessage = SendMessage.builder()
-                        .chatId(user.getChatId().toString())
-                        .text("Hello, It's bot for counting days in year\nYou can chose from list of commands here")
-                        .replyMarkup(buildCommandsMenu())
-                        .build();
-            }
-            case Buttons.BTN_ACTIVATE -> {
-                try {
-                    userDao.setIsActiveTrue(user.getChatId());
+                if (userByChatId.isPresent()) {
                     sendMessage = SendMessage.builder()
                             .chatId(user.getChatId().toString())
-                            .text("✅Congratulations bot was activate you will receive a message every minute✅")
+                            .text(USER_ADDED)
                             .replyMarkup(buildCommandsMenu())
                             .build();
-                } catch (UserNotFoundException e) {
+                } else {
+                    addUser(user);
                     sendMessage = SendMessage.builder()
                             .chatId(user.getChatId().toString())
-                            .text(e.getMessage())
+                            .text(WELCOME_MESSAGE)
+                            .replyMarkup(buildCommandsMenu())
+                            .build();
+                }
+            }
+            case Buttons.BTN_ACTIVATE -> {
+                if (userByChatId.isPresent()) {
+                    userRepository.setIsActiveTrue(user.getChatId());
+                    sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId().toString())
+                            .text(BOT_ACTIVATED)
+                            .replyMarkup(buildCommandsMenu())
+                            .build();
+                } else {
+                    sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId().toString())
+                            .text(USER_NOT_ADDED)
                             .build();
                 }
             }
             case Buttons.BTN_DEACTIVATE -> {
-                try {
-                    userDao.setIsActiveFalse(user.getChatId());
+                if (userByChatId.isPresent()) {
+                    userRepository.setIsActiveFalse(user.getChatId());
                     sendMessage = SendMessage.builder()
                             .chatId(user.getChatId().toString())
-                            .text("❌Bot was deactivated you won't receive a message anymore❌")
+                            .text(BOT_DEACTIVATED)
                             .replyMarkup(buildCommandsMenu())
                             .build();
-                } catch (UserNotFoundException e) {
+                } else {
                     sendMessage = SendMessage.builder()
                             .chatId(user.getChatId().toString())
-                            .text(e.getMessage())
+                            .text(USER_NOT_ADDED)
                             .build();
                 }
+
             }
             default -> {
                 sendMessage = SendMessage.builder()
                         .chatId(user.getChatId().toString())
-                        .text("❌You put the wrong text or button please try again❌")
+                        .text(WRONG_COMMAND)
                         .replyMarkup(buildCommandsMenu())
                         .build();
             }
@@ -71,13 +92,13 @@ public class UserService {
     }
 
     public List<User> findAll() {
-        return userDao.findAll();
+        return userRepository.findAll();
     }
 
     public void addUser(User user) {
-        Optional<User> optionalUser = userDao.findByChatId(user.getChatId());
+        Optional<User> optionalUser = userRepository.findById(user.getChatId());
         if (optionalUser.isEmpty())
-            userDao.addUser(user);
+            userRepository.save(user);
     }
 
     private ReplyKeyboardMarkup buildCommandsMenu() {
